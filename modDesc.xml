@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<modDesc descVersion="73">
+
+    <author>loki_79</author>
+    <version>1.0.0.0</version>
+	
+    <title>
+        <en>Harvest Mission Fix</en>
+		<de>Erntemission</de>
+    </title>
+	
+    <description>
+<en><![CDATA[This mod will fix an issue that prevents harvest missions from being completed on certain maps.  It will apply to all new contracts.
+
+There is also an optional debugging display that will monitor progress and can help identify other issues with yield or harvest mission completion.
+]]>
+</en>
+
+<de><![CDATA[
+]]>
+</de>
+    </description>
+	
+	<multiplayer supported="true" />
+	<iconFilename>modIcon.dds</iconFilename>
+	<extraSourceFiles>
+        <sourceFile filename="HarvestMissionFix.lua" />
+    </extraSourceFiles>
+	
+	<actions>
+		<action name="HARVEST_MISSION_TOGGLE_INFO"/>
+		<action name="HARVEST_MISSION_TEST"/>
+		<action name="HARVEST_MISSION_CYCLE_FW"/>
+		<action name="HARVEST_MISSION_CYCLE_BW"/>
+	</actions>
+	
+	<inputBinding>
+		<actionBinding action="HARVEST_MISSION_TOGGLE_INFO" >
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>
+		<actionBinding action="HARVEST_MISSION_TEST" >
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>
+		<actionBinding action="HARVEST_MISSION_CYCLE_FW" >
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>
+		<actionBinding action="HARVEST_MISSION_CYCLE_BW" >
+			<binding device="KB_MOUSE_DEFAULT" input="" />
+		</actionBinding>
+	</inputBinding>
+	
+	<l10n>
+		<text name="input_HARVEST_MISSION_TOGGLE_INFO">
+			<en>Harvest Mission: Toggle Info</en>
+			<de>Erntemission: Info umschalten</de>
+		</text>
+		<text name="input_HARVEST_MISSION_TEST">
+			<en>Harvest Mission: AUTO COMPLETE</en>
+			<de>Erntemission: AUTO KOMPLETT</de>
+		</text>
+		<text name="input_HARVEST_MISSION_CYCLE_FW">
+			<en>Harvest Mission: Cycle Forwards</en>
+			<de>Erntemission: Wechseln vorwärts</de>
+		</text>
+		<text name="input_HARVEST_MISSION_CYCLE_BW">
+			<en>Harvest Mission: Cycle Backwards</en>
+			<de>Erntemission: Wechseln rückwärts</de>
+		</text>
+	</l10n>
+
+</modDesc>
