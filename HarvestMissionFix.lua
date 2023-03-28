@@ -4,7 +4,8 @@ addModEventListener(HarvestMissionFix)
 
 HarvestMissionFix.missions = {}
 
-function HarvestMissionFix.getMissionIndex(field)
+function HarvestMissionFix.getMissionIndex(self)
+	local field = self.field
 	for k, v in pairs(HarvestMissionFix.missions) do
 		if v.field.fieldId == field.fieldId then
 			return k
@@ -13,18 +14,13 @@ function HarvestMissionFix.getMissionIndex(field)
 	return 0
 end
 
-function HarvestMissionFix.insertMission(self)
-	local mission = {}
-	mission.active = true
-	mission.self = self
-	mission.field = self.field
-	mission.sellPoint = self.sellPoint
-	mission.harvestedLitres = 0
+function HarvestMissionFix.insertMission(self, active)
+	local mission = self
+	mission.active = active
+	mission.collectedLiters = 0
+
 	table.insert(HarvestMissionFix.missions, mission)
 	table.sort(HarvestMissionFix.missions, function(a, b) return a.field.fieldId < b.field.fieldId end )
-	
-	local index = HarvestMissionFix.getMissionIndex(self.field)	
-	return HarvestMissionFix.missions[index]
 end
 
 FSBaseMission.registerActionEvents = Utils.appendedFunction(FSBaseMission.registerActionEvents, function()
@@ -71,15 +67,17 @@ function HarvestMissionFix:test()
 	if HarvestMissionFix.show then
 		HarvestMissionFix.index = HarvestMissionFix.index or 1
 		local mission = HarvestMissionFix.missions[HarvestMissionFix.index]
-		if mission and mission.active then
+		if mission and mission.active and mission.harvestCompletion == 0 then
 			mission.simulationLitres, mission.simulationMultiplier = HarvestMissionFix.testHarvestField(mission)
+		else
+			DebugUtil.printTableRecursively(mission, "--", 0, 1)
 		end
 	end
 end
 
 function HarvestMissionFix.cycleIndex(direction)
 
-	HarvestMissionFix.index = HarvestMissionFix.index or 0
+	HarvestMissionFix.index = HarvestMissionFix.index or 1
 
 	if direction == 'BW' then
 		HarvestMissionFix.index = HarvestMissionFix.index - 1
@@ -98,108 +96,116 @@ end
 function HarvestMissionFix:draw()
 
 	local left = 0.05
+	local right = 0.20
 	local top = 0.88
 	local d = 0.0150
-	local b = 0.0125
+	local b = 0.0130
 	local x = function(delta)
-		top = top - (delta or d)
+		top = top - (delta or 0)
 		return top
 	end
-	local printLine = function(delta)
-		top = top - (delta or d)
-		return top
+	local printLeft = function(name)
+		renderText(left, x(d), d, name)
 	end
+	local printRight = function(value)
+		setTextAlignment(RenderText.ALIGN_RIGHT)
+		renderText(right, x(), d, value)
+		setTextAlignment(RenderText.ALIGN_LEFT)
+	end
+	local printLine = function(name, value)
+		printLeft(name) printRight(value)
+	end
+	local printSpace = function()
+		renderText(left, x(b), b, string.format(""))
+	end
+	local printBreak = function(space)
+		renderText(left, x(b), d, string.format("----------------------------------------"))
+		if space then
+			printSpace()
+		end
+	end
+	
 	setTextAlignment(RenderText.ALIGN_LEFT)
 	setTextBold(false)
 	
-	local mission = HarvestMissionFix.missions[HarvestMissionFix.index or 1]
+	HarvestMissionFix.index = HarvestMissionFix.index or 1
+	local mission = HarvestMissionFix.missions[HarvestMissionFix.index]
 	if mission == nil or not HarvestMissionFix.show or #HarvestMissionFix.missions == 0 then
 		if HarvestMissionFix.show then
 			setTextColor(1, 1, 1, 1)
-			renderText(left, x(b), d, string.format("------------------------------"))
-			renderText(left, x(d), d, string.format("NO ACTIVE MISSIONS"))
-			renderText(left, x(b), d, string.format("------------------------------"))
+			printBreak()
+			printLeft("     NO HARVEST MISSIONS ACTIVE     ")
+			printBreak()
 		end
 		return
 	end
 	
-	if mission.harvestedLitres and mission.harvestedLitres < 0 then
-		mission.harvestedLitres = 0
+	if mission.collectedLiters and mission.collectedLiters < 0 then
+		mission.collectedLiters = 0
+		self.collectedLiters = 0
 	end
 	
-	if mission.active then
-		setTextColor(1, 1, 1, 1)
-	else
+	if mission.complete then
 		if mission.success then
 			setTextColor(0, 1, 0, 1)
 		else
 			setTextColor(1, 0, 0, 1)
 		end
+	else
+		setTextColor(1, 1, 1, 1)
 	end
-	renderText(left, x(b), d, string.format("------------------------------"))
-	renderText(left, x(d), d, string.format("FIELD #%d       AREA: %.3f ha", mission.fieldNumber or 0, mission.area or 0))
-	renderText(left, x(d), d, string.format("Sell Point:  %s", mission.sellPoint:getName()))
-	renderText(left, x(d), d, string.format("Max Cut Litres:       %.1f l", mission.maxCutLiters or 0))
-	renderText(left, x(d), d, string.format("Litres Per Sqm:       %.3f", mission.literPerSqm or 0))
-	renderText(left, x(d), d, string.format("Fruit Pixels To Sqm:  %.3f", g_currentMission:getFruitPixelsToSqm() or 0))
-	renderText(left, x(b), d, string.format("------------------------------"))
-	local realExpectedLitres = (mission.expectedLiters or 0) * AbstractMission.SUCCESS_FACTOR
-	renderText(left, x(d), d, string.format("Expected:             %.1f l", realExpectedLitres or 0))
-	renderText(left, x(d), d, string.format("Collected:            %.1f l", mission.harvestedLitres or 0))
-	renderText(left, x(d), d, string.format("Deposited:            %.1f l", mission.depositedLiters or 0))
-	renderText(left, x(d), d, string.format("SELL Completion:      %.1f %%", 100*(mission.sellCompletion or 0)))
-	renderText(left, x(d), d, string.format("FIELD Completion:     %.1f %%", 100*(mission.fieldCompletion or 0)))
-	renderText(left, x(d), d, string.format("HARVEST Completion:   %.1f %%", 100*(mission.harvestCompletion or 0)))
-	renderText(left, x(b), d, string.format("------------------------------"))
+	printBreak()
+	local state                    = "Available"
+	if mission.active then state   = "Active" end
+	if mission.complete then state = "Complete" end
+	printLeft(string.format("FIELD #%d", mission.field.fieldId or 0)) printRight(state)
+	printLeft("Sell Point:") printRight(mission.sellPoint:getName())
+	printBreak()
+	printLine("Field Area:", string.format("%.3f ha", mission.field.fieldArea or 0))
+	printLine("Max Cut Litres:", string.format("%.1f l", mission.maxCutLiters or 0))
+	printLine("Yield Multiplier:", string.format("%.3f", mission.totalFactor or 0))
+	printLine("Correction Factor:", string.format("%.3f", mission.correctionFactor or 0))
+	printLine("Litres Per Sqm:", string.format("%.3f", mission.literPerSqm or 0))
+	printLine("Fruit Pixels To Sqm:", string.format("%.3f", g_currentMission:getFruitPixelsToSqm() or 0))
+	printBreak()
+	
+	if state == "Available" then return end
+	
+	local realExpectedLitres = (mission.expectedLiters or 0) * (mission.correctionFactor or 0) * AbstractMission.SUCCESS_FACTOR
+	local totalCollectedLitres = mission.collectedLiters + mission.depositedLiters
+	
+	printLine("Expected:", string.format("%.1f l", realExpectedLitres or 0))
+	printLine("Collected:", string.format("%.1f l", mission.collectedLiters or 0))
+	printLine("Deposited:", string.format("%.1f l", mission.depositedLiters or 0))
+	printLine("SELL Completion:", string.format("%.1f %%", 100*(mission.sellCompletion or 0)))
+	--printLine("FIELD Completion:", string.format("%.1f %%", 100*(mission.fieldCompletion or 0)))
+	printLine("HARVEST Completion:", string.format("%.1f %%", 100*(mission.harvestCompletion or 0)))
+	printBreak()
 	setTextBold(true)
-	renderText(left, x(d), d, string.format("TOTAL COMPLETION:   %.1f %%", 100*(mission.totalCompletion or 0)))
+	printLine("TOTAL COMPLETION:", string.format("%.1f %%", 100*(mission.totalCompletion or 0)))
 	setTextBold(false)
-	renderText(left, x(b), d, string.format("------------------------------"))
-	renderText(left, x(b), b, string.format(""))
-	renderText(left, x(d), d, string.format("Spray Factor:   %.3f", mission.sprayFactor or 0))
-	renderText(left, x(d), d, string.format("Plow Factor:    %.3f", mission.plowFactor or 0))
-	renderText(left, x(d), d, string.format("Lime Factor:    %.3f", mission.limeFactor or 0))
-	renderText(left, x(d), d, string.format("Weed Factor:    %.3f", mission.weedFactor or 0))
-	renderText(left, x(d), d, string.format("Stubble Factor: %.3f", mission.stubbleFactor or 0))
-	renderText(left, x(d), d, string.format("Roller Factor:  %.3f", mission.rollerFactor or 0))
-	setTextBold(true)
-	renderText(left, x(d), d, string.format("TOTAL Factor:   %.3f", mission.totalFactor or 0))
-	setTextBold(false)
-	renderText(left, x(b), b, string.format(""))
-	
-	if mission.averageMultiplier and mission.correctionFactor then
-		renderText(left, x(d), d, string.format("Predicted Multiplier:   %.3f", mission.averageMultiplier or 0))
-		renderText(left, x(d), d, string.format("Correction Factor:      %.3f", mission.correctionFactor or 0))
-		renderText(left, x(b), b, string.format(""))
-	end
-	
-	if mission.simulationLitres and mission.simulationMultiplier and mission.expectedLiters then
-	
-		local realExpectedLitres = mission.expectedLiters * AbstractMission.SUCCESS_FACTOR
-		local harvestRatio = (realExpectedLitres-mission.simulationLitres)/realExpectedLitres
-		renderText(left, x(d), d, string.format("Simulation Multiplier:   %.3f", mission.simulationMultiplier or 0))
-		renderText(left, x(d), d, string.format("Simulation Litres:       %.1f l", mission.simulationLitres or 0))
-		renderText(left, x(d), d, string.format("Simulation Shortfall:    %.2f %%", 100*harvestRatio ))
-		renderText(left, x(b), b, string.format(""))
-	end
+	printBreak(true)
 
-	if mission.totalArea and mission.realArea and mission.expectedLiters then
-		mission.completion = mission.realArea / mission.totalArea
-		local realExpectedLitres = mission.expectedLiters * AbstractMission.SUCCESS_FACTOR
-		local totalCollectedLitres = mission.harvestedLitres + mission.depositedLiters
+	if mission.harvestCompletion and mission.expectedLiters then
 		local shortfallPercent = math.max(0, (realExpectedLitres-totalCollectedLitres)/realExpectedLitres)
 		local surplusPercent = math.max(0, ((totalCollectedLitres-realExpectedLitres)+(mission.surplusLitres or 0))/realExpectedLitres)
-		renderText(left, x(d), d, string.format("Harvest Completion:  %.1f %%", 100*mission.completion))
-		renderText(left, x(d), d, string.format("Harvest Shortfall:   %.2f %%", 100*shortfallPercent))
-		renderText(left, x(d), d, string.format("Harvest Surplus:     %.2f %%", 100*surplusPercent))
-		renderText(left, x(b), b, string.format(""))
+		printLine("FIELD Completion:", string.format("%.1f %%", 100*mission.harvestCompletion))
+		printLine("Litres Remaining:", string.format("%.2f %%", 100*shortfallPercent))
+		printLine("Expected Surplus:", string.format("%.2f %%", 100*surplusPercent))
+		printSpace()
+	end
+	
+	if mission.simulationLitres and mission.simulationMultiplier then
+		printLine("Simulation Multiplier:", string.format("%.3f", mission.simulationMultiplier or 0))
+		printLine("Simulation Litres:", string.format("%.1f l", mission.simulationLitres or 0))
+		printSpace()
 	end
 	
 	if mission.numPartitions then
 		local w = left
 		renderText(left, x(d), d, string.format("Partitions: %d   Area: %.3f ha", mission.numPartitions, mission.totalArea))
 		renderText(left, x(b/2), b/2, string.format(""))
-		for i = 1, mission.numPartitions do
+		for i = 1, #mission.partition do
 			if i == 1 then
 				w = left
 				original = top
@@ -217,16 +223,18 @@ end
 
 -- DETECT WHEN A MISSION IS ACTIVATED
 local function getStart(self, spawnVehicles)
-	local mission = HarvestMissionFix.insertMission(self)
-	HarvestMissionFix.index = HarvestMissionFix.getMissionIndex(self.field)	
+	HarvestMissionFix.insertMission(self, true)
+	HarvestMissionFix.index = HarvestMissionFix.getMissionIndex(self)
 end
 local oldHarvestStart = HarvestMission.start
 HarvestMission.start = function(...) getStart(...) return oldHarvestStart(...) end
 
 -- DETECT WHEN A MISSION IS ENDED
 local function getFinish(self, success)
-	local i = HarvestMissionFix.getMissionIndex(self.field)
+	local i = HarvestMissionFix.getMissionIndex(self)
+	HarvestMissionFix.getCompletion(self)
 	HarvestMissionFix.missions[i].active = false
+	HarvestMissionFix.missions[i].complete = true
 	HarvestMissionFix.missions[i].success = success
 end
 local oldHarvestFinish = HarvestMission.finish
@@ -238,8 +246,8 @@ local function raiseEvent(self, eventName, fillUnitIndex, fillLevelDelta, fillTy
 		for k, v in pairs(HarvestMissionFix.missions) do
 			if v.fillType == fillTypeIndex then
 				local mission = HarvestMissionFix.missions[k]
-				if mission and mission.active and mission.harvestedLitres then
-					mission.harvestedLitres = mission.harvestedLitres + fillLevelDelta
+				if mission and mission.active and mission.collectedLiters then
+					mission.collectedLiters = mission.collectedLiters + fillLevelDelta
 				end
 			end
 		end
@@ -250,46 +258,41 @@ SpecializationUtil.raiseEvent = function(...) raiseEvent(...) return oldRaiseEve
 
 function HarvestMissionFix.getCompletion(self)
 
-	local i = HarvestMissionFix.getMissionIndex(self.field)
+	local i = HarvestMissionFix.getMissionIndex(self)
 	if i == 0 then
-		HarvestMissionFix.insertMission(self)
-		i = HarvestMissionFix.getMissionIndex(self.field)
+		HarvestMissionFix.insertMission(self, true)
+		i = HarvestMissionFix.getMissionIndex(self)
 	end
 	
 	local mission = HarvestMissionFix.missions[i]
 	if mission then
 	
-		if mission.simulationLitres and mission.expectedLiters and mission.fieldCompletion > 0.999 and not mission.complete then
+		if mission.simulationLitres and mission.harvestCompletion > 0.999 and not mission.simulationComplete then
 
-			local realExpectedLitres = mission.expectedLiters * AbstractMission.SUCCESS_FACTOR
+			local realExpectedLitres = mission.expectedLiters * mission.correctionFactor * AbstractMission.SUCCESS_FACTOR
 			
 			if realExpectedLitres > mission.simulationLitres then
-				mission.self:fillSold(mission.simulationLitres)
+				mission:fillSold(mission.simulationLitres)
+				print(string.format("HarvestMissionFix: %.3f litres from field #%d deposited at %s",
+					mission.simulationLitres, mission.field.fieldId, mission.sellPoint:getName()))
 			else
-				local farmId = FarmManager.SINGLEPLAYER_FARM_ID
-				mission.self:fillSold(realExpectedLitres)
+				local farmId = g_currentMission:getFarmId()
+				mission:fillSold(realExpectedLitres)
+				print(string.format("HarvestMissionFix: %.3f litres from field #%d deposited at %s",
+					realExpectedLitres, mission.field.fieldId, mission.sellPoint:getName()))
+					
 				mission.surplusLitres = mission.simulationLitres - realExpectedLitres
 				mission.sellPoint:sellFillType(farmId, mission.surplusLitres, mission.fillType, ToolType.UNDEFINED)
-				print(string.format("HarvestMissionFix: Surplus Litres %.3f from field #%d sold to %s",
-					mission.surplusLitres, mission.fieldNumber, mission.sellPoint:getName()))
+				print(string.format("HarvestMissionFix: %.3f surplus litres from field #%d sold to %s",
+					mission.surplusLitres, mission.field.fieldId, mission.sellPoint:getName()))
 			end
-			mission.complete = true
+			mission.simulationComplete = true
 		end
 		
-		mission.active = true
-		mission.fillType = self.fillType
-		mission.field = self.field
-		mission.fieldNumber = self.field.fieldId
 		mission.maxCutLiters = self:getMaxCutLiters()
-		mission.expectedLiters = self.expectedLiters
-		mission.depositedLiters = self.depositedLiters
-		mission.fieldCompletion = self:getFieldCompletion()
-		
-		mission.sellCompletion = math.min(1, self.depositedLiters / self.expectedLiters / HarvestMission.SUCCESS_FACTOR)
-		mission.harvestCompletion = math.min(1, mission.fieldCompletion / AbstractMission.SUCCESS_FACTOR)
-		mission.totalCompletion = math.min(1, 0.8 * mission.harvestCompletion + 0.2 * mission.sellCompletion)
+		mission.fieldCompletion = HarvestMissionFix.getFieldCompletion(self)
 
-		if mission.correctionFactor == nil then
+		if mission.totalArea and mission.correctionFactor == nil then
 
 			mission.sprayFactor = self.sprayFactor or 0
 			mission.plowFactor = self.fieldPlowFactor or 0
@@ -297,9 +300,7 @@ function HarvestMissionFix.getCompletion(self)
 			mission.weedFactor = self.weedFactor or 0
 			mission.stubbleFactor = self.stubbleFactor or 0
 			mission.rollerFactor = self.rollerFactor or 0
-			
 			local fruitDesc = g_fruitTypeManager:getFruitTypeByIndex(self.field.fruitType)
-			mission.area = self.field.fieldArea
 			mission.multiplier = g_currentMission:getHarvestScaleMultiplier(self.fruitType, mission.sprayFactor, mission.plowFactor, mission.limeFactor, mission.weedFactor, mission.stubbleFactor, mission.rollerFactor)
 			mission.literPerSqm = fruitDesc.literPerSqm
 			if fruitDesc.hasWindrow then
@@ -323,7 +324,7 @@ function HarvestMissionFix.getCompletion(self)
 				mission.correctionFactor = 1
 			end
 			
-			local areaFactor = mission.totalArea/mission.area
+			local areaFactor = mission.totalArea/mission.field.fieldArea
 			if areaFactor < 1 then
 				mission.correctionFactor = mission.correctionFactor * areaFactor
 			end
@@ -337,75 +338,101 @@ function HarvestMissionFix.getCompletion(self)
 				HarvestMissionFix.bonusfactor = clamp(HarvestMissionFix.bonusfactor, 0, 0.05)
 				mission.correctionFactor = mission.correctionFactor * (1-HarvestMissionFix.bonusfactor)
 			end
-			print(string.format("HarvestMissionFix: Applied correction factor %.3f to field #%d",
-				mission.correctionFactor, mission.fieldNumber))
-			self.expectedLiters = self.expectedLiters * mission.correctionFactor
+			print(string.format("HarvestMissionFix: Using correction factor %.3f for field #%d",
+				mission.correctionFactor, mission.field.fieldId))
+			-- self.expectedLiters = self.expectedLiters * mission.correctionFactor
 		end
+		
+		local expectedLiters = self.expectedLiters
+		if mission.correctionFactor then
+			expectedLiters = expectedLiters * mission.correctionFactor
+		end
+		
+		mission.sellCompletion = math.min(1, self.depositedLiters / expectedLiters / HarvestMission.SUCCESS_FACTOR)
+		mission.harvestCompletion = math.min(1, mission.fieldCompletion / AbstractMission.SUCCESS_FACTOR)
+		mission.totalCompletion = math.min(1, 0.8 * mission.harvestCompletion + 0.2 * mission.sellCompletion)
+		
+		return mission.totalCompletion
+
 	end
+	
+	return 0
 end
 
 function HarvestMissionFix.getFieldCompletion(self)
 
 	if #HarvestMissionFix.missions == 0 then
-		return
+		return 0
 	end
 	
-	local i = HarvestMissionFix.getMissionIndex(self.field)
-	local mission = HarvestMissionFix.missions[i] or {}
+	local i = HarvestMissionFix.getMissionIndex(self)
+	local mission = HarvestMissionFix.missions[i]
+	if mission then
 	
-	mission.partition = {}
-	mission.numPartitions = table.getn(self.field.getFieldStatusPartitions)
-	
-	mission.pixels = 0;
-	mission.totalPixels = 0;
-	mission.realArea = 0;
-	mission.totalArea = 0;
-	mission.maxPix = 0
-	mission.minPix = math.huge
-	
-	for i = 1, mission.numPartitions do
-	
-		mission.partition[i] = {}
+		mission.partition = {}
+		mission.numPartitions = table.getn(self.field.getFieldStatusPartitions)
 		
-		local partition = self.field.getFieldStatusPartitions[i]
-		local area, totalArea = self:partitionCompletion(partition.x0, partition.z0, partition.widthX, partition.widthZ, partition.heightX, partition.heightZ)
-		mission.partition[i].partitionArea = area
-		mission.partition[i].partitionTotalArea = totalArea
-		mission.partition[i].partitionPercentage = area / totalArea
-		
-		mission.pixels = mission.pixels + area
-		mission.totalPixels = mission.totalPixels + totalArea
-		
-		mission.maxPix = math.max(mission.maxPix, totalArea)
-		mission.minPix = math.min(mission.minPix, totalArea)
-		
-	end
-	
-		
-	local deltaSum = 0
-	mission.mean = mission.totalPixels / mission.numPartitions
-	
-	for i = 1, mission.numPartitions do
-	
-		local delta = mission.mean - mission.partition[i].partitionTotalArea
-		deltaSum = deltaSum + (delta*delta)
-	end
-	mission.variance = deltaSum / mission.numPartitions
-	mission.stddev = math.sqrt(mission.variance)
+		local pixels = 0;
+		local totalPixels = 0;
 
-	mission.realArea = MathUtil.areaToHa(mission.pixels, g_currentMission:getFruitPixelsToSqm())
-	mission.totalArea = MathUtil.areaToHa(mission.totalPixels, g_currentMission:getFruitPixelsToSqm())
+		for i = 1, mission.numPartitions do
+		
+			mission.partition[i] = {}
+			
+			local partition = self.field.getFieldStatusPartitions[i]
+			local area, totalArea = self:partitionCompletion(partition.x0, partition.z0, partition.widthX, partition.widthZ, partition.heightX, partition.heightZ)
+			mission.partition[i].partitionArea = area
+			mission.partition[i].partitionTotalArea = totalArea
+			mission.partition[i].partitionPercentage = area / totalArea
+			
+			pixels = pixels + area
+			totalPixels = totalPixels + totalArea
+			
+		end
+
+		local realArea = MathUtil.areaToHa(pixels, g_currentMission:getFruitPixelsToSqm())
+		local totalArea = MathUtil.areaToHa(totalPixels, g_currentMission:getFruitPixelsToSqm())
+		
+		mission.totalArea = totalArea
+		mission.harvestCompletion = realArea / totalArea
+		
+		return mission.harvestCompletion
+	end
 	
+	return 0
 end
 
 -- DETECT WHEN "getCompletion" IS CALLED DURING A MISSION
 local oldHarvestGetCompletion = HarvestMission.getCompletion
 HarvestMission.getCompletion = function(...)
-	local originalCompletion = oldHarvestGetCompletion(...)
-	HarvestMissionFix.getFieldCompletion(...)
-	HarvestMissionFix.getCompletion(...)
-	return originalCompletion
+	
+	local correctedCompletion = HarvestMissionFix.getCompletion(...)
+	if correctedCompletion then
+		return correctedCompletion
+	else
+		local originalCompletion = oldHarvestGetCompletion(...)
+		print("Original Completion: " .. originalCompletion)
+		return originalCompletion
+	end
 end
+
+local oldHarvestSaveToXMLFile = HarvestMission.saveToXMLFile
+HarvestMission.saveToXMLFile = function(self, xmlFile, key)
+	oldHarvestSaveToXMLFile(self, xmlFile, key)
+	local harvestKey = string.format("%s.harvest", key)
+	if self.collectedLiters then setXMLFloat(xmlFile, harvestKey .. "#collectedLiters", self.collectedLiters) end
+	if self.correctionFactor then setXMLFloat(xmlFile, harvestKey .. "#correctionFactor", self.correctionFactor) end
+end
+
+local oldHarvestLoadFromXMLFile = HarvestMission.loadFromXMLFile
+HarvestMission.loadFromXMLFile = function(self, xmlFile, key)
+	local harvestKey = key .. ".harvest(0)"
+	self.collectedLiters = getXMLFloat(xmlFile, harvestKey .. "#collectedLiters") or 0
+	self.correctionFactor = getXMLFloat(xmlFile, harvestKey .. "#correctionFactor") or nil
+	return oldHarvestLoadFromXMLFile(self, xmlFile, key)
+end
+
+
 
 -- DETERMINE THE REAL PARAMETERS WITHOUT CHANGING FIELD
 function HarvestMissionFix.testFruitArea(fruitIndex, startWorldX, startWorldZ, widthWorldX, widthWorldZ, heightWorldX, heightWorldZ, destroySpray, useMinForageState, excludedSprayType, setsWeeds, limitToField)
@@ -600,6 +627,7 @@ function HarvestMissionFix.testHarvestField(mission)
 
 	return totalLiters, averageMultiplier
 end
+
 
 -- REPLACE "findFieldSizes" TO FIX THE INCORRECT AREA REPORTED FOR DIFFERENT SIZED MAPS
 function FieldManager:findFieldSizes(bitMapSize)
