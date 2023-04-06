@@ -31,16 +31,15 @@ FSBaseMission.registerActionEvents = Utils.appendedFunction(FSBaseMission.regist
 	HarvestMissionFix.toggleInfoActionEventId = actionEventId
 	
 	local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_CYCLE_FW", HarvestMissionFix, HarvestMissionFix.cycleFW, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
-    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
+    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
 	g_inputBinding:setActionEventTextVisibility(actionEventId, false)
 	HarvestMissionFix.cycleFWActionEventId = actionEventId
 	
 	local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_CYCLE_BW", HarvestMissionFix, HarvestMissionFix.cycleBW, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
-    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
+    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
 	g_inputBinding:setActionEventTextVisibility(actionEventId, false)
 	HarvestMissionFix.cycleBWActionEventId = actionEventId
 	
-
 	local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_TEST", HarvestMissionFix, HarvestMissionFix.test, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
     g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
 	HarvestMissionFix.testActionEventId = actionEventId
@@ -49,6 +48,8 @@ end)
 		
 function HarvestMissionFix:toggleInfo()
 	HarvestMissionFix.show = not (HarvestMissionFix.show or false)
+	g_inputBinding:setActionEventTextVisibility(HarvestMissionFix.cycleFWActionEventId, HarvestMissionFix.show)
+	g_inputBinding:setActionEventTextVisibility(HarvestMissionFix.cycleBWActionEventId, HarvestMissionFix.show)
 end
 
 function HarvestMissionFix:cycleFW()
@@ -256,6 +257,7 @@ end
 local oldRaiseEvent = SpecializationUtil.raiseEvent
 SpecializationUtil.raiseEvent = function(...) raiseEvent(...) return oldRaiseEvent(...) end
 
+-- NEW FUNCTION TO CALCULATE MISSON COMPLETION
 function HarvestMissionFix.getCompletion(self)
 
 	local i = HarvestMissionFix.getMissionIndex(self)
@@ -359,6 +361,7 @@ function HarvestMissionFix.getCompletion(self)
 	return 0
 end
 
+-- NEW FUNCTION TO CALCULATE FIELD COMPLETION
 function HarvestMissionFix.getFieldCompletion(self)
 
 	if #HarvestMissionFix.missions == 0 then
@@ -402,7 +405,7 @@ function HarvestMissionFix.getFieldCompletion(self)
 	return 0
 end
 
--- DETECT WHEN "getCompletion" IS CALLED DURING A MISSION
+-- OVERRIDE SOME HARVEST MISSION FUNCTIONS
 local oldHarvestGetCompletion = HarvestMission.getCompletion
 HarvestMission.getCompletion = function(...)
 	

@@ -36,16 +36,16 @@ There is also an optional debugging display that will monitor progress and can h
 	
 	<inputBinding>
 		<actionBinding action="HARVEST_MISSION_TOGGLE_INFO" >
-			<binding device="KB_MOUSE_DEFAULT" input="" />
+			<binding device="KB_MOUSE_DEFAULT" input="KEY_rshift KEY_backslash" />
 		</actionBinding>
 		<actionBinding action="HARVEST_MISSION_TEST" >
-			<binding device="KB_MOUSE_DEFAULT" input="" />
+			<binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_lshift KEY_end" />
 		</actionBinding>
 		<actionBinding action="HARVEST_MISSION_CYCLE_FW" >
-			<binding device="KB_MOUSE_DEFAULT" input="" />
+			<binding device="KB_MOUSE_DEFAULT" input="KEY_rightbracket" />
 		</actionBinding>
 		<actionBinding action="HARVEST_MISSION_CYCLE_BW" >
-			<binding device="KB_MOUSE_DEFAULT" input="" />
+			<binding device="KB_MOUSE_DEFAULT" input="KEY_leftbracket" />
 		</actionBinding>
 	</inputBinding>
 	
