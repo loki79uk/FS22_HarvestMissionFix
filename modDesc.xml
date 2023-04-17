@@ -3,71 +3,71 @@
 
     <author>loki_79</author>
     <version>1.0.0.0</version>
-	
+    
     <title>
         <en>Harvest Mission Fix</en>
-		<de>Erntemission</de>
+        <de>Ernte-Mission Fix</de>
     </title>
-	
+    
     <description>
-<en><![CDATA[This mod will fix an issue that prevents harvest missions from being completed on certain maps.  It will apply to all new contracts in single player or multiplayer games.
+<en><![CDATA[This mod will fix an issue that prevents harvest missions from being completed on certain maps. It will apply to all new contracts in single player or multiplayer games.
 
-For single player games there is an optional debugging display that will monitor progress and can help identify other issues with yield or harvest mission completion.  You can also test the completion of a mission by harvesting and delivering all crops from a field with a single key press!
+For single player games there is an optional debugging display that will monitor progress and can help identify other issues with yield or harvest mission completion. You can also test the completion of a mission by harvesting and delivering all crops from a field with a single key press! This action will be applied to whichever mission is currently selected in the debugging display.
 ]]>
 </en>
 
-<de><![CDATA[Diese Mod behebt ein Problem, das den Abschluss von Ernteaufträgen auf bestimmten Karten verhindert.  Sie gilt für alle neuen Verträge in Einzelspieler- oder Mehrspieler-Spielen.
+<de><![CDATA[Diese Mod behebt ein Problem, welches verhindert, dass Ernteaufträge auf bestimmten Karten abgeschlossen werden können. Sie gilt für alle neuen Verträge in Einzelspieler- oder Mehrspieler-Spielen.
 
-Für Einzelspielerspiele gibt es eine optionale Debugging-Anzeige, die den Fortschritt überwacht und dabei helfen kann, andere Probleme mit dem Ertrag oder dem Abschluss von Erntemissionen zu identifizieren.  Sie können auch den Abschluss einer Mission testen, indem Sie mit einem einzigen Tastendruck alle Feldfrüchte ernten und abliefern!
+Für Einzelspielerspiele gibt es eine optionale Debugging-Anzeige, die den Fortschritt überwacht und dir dabei helfen kann, andere Probleme mit dem Ertrag oder dem Abschluss von Erntemissionen zu identifizieren. Du kannst auch den Abschluss einer Mission testen, indem Du mit einem einzigen Tastendruck alle Feldfrüchte ernten und abliefern kannst! Diese Aktion wird auf die Mission angewendet, die gerade in der Debugging-Anzeige ausgewählt ist.
 ]]>
 </de>
     </description>
-	
-	<multiplayer supported="true"/>
-	<iconFilename>modIcon.dds</iconFilename>
-	<extraSourceFiles>
+    
+    <multiplayer supported="true"/>
+    <iconFilename>icon_HarvestMissionFix.dds</iconFilename>
+    <extraSourceFiles>
         <sourceFile filename="HarvestMissionFix.lua" />
     </extraSourceFiles>
-	
-	<actions>
-		<action name="HARVEST_MISSION_TOGGLE_INFO"/>
-		<action name="HARVEST_MISSION_TEST"/>
-		<action name="HARVEST_MISSION_CYCLE_FW"/>
-		<action name="HARVEST_MISSION_CYCLE_BW"/>
-	</actions>
-	
-	<inputBinding>
-		<actionBinding action="HARVEST_MISSION_TOGGLE_INFO" >
-			<binding device="KB_MOUSE_DEFAULT" input="KEY_rshift KEY_backslash" />
-		</actionBinding>
-		<actionBinding action="HARVEST_MISSION_TEST" >
-			<binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_lshift KEY_end" />
-		</actionBinding>
-		<actionBinding action="HARVEST_MISSION_CYCLE_FW" >
-			<binding device="KB_MOUSE_DEFAULT" input="KEY_rightbracket" />
-		</actionBinding>
-		<actionBinding action="HARVEST_MISSION_CYCLE_BW" >
-			<binding device="KB_MOUSE_DEFAULT" input="KEY_leftbracket" />
-		</actionBinding>
-	</inputBinding>
-	
-	<l10n>
-		<text name="input_HARVEST_MISSION_TOGGLE_INFO">
-			<en>Harvest Mission: Toggle Info</en>
-			<de>Erntemission: Info umschalten</de>
-		</text>
-		<text name="input_HARVEST_MISSION_TEST">
-			<en>Harvest Mission: AUTO COMPLETE</en>
-			<de>Erntemission: AUTO KOMPLETT</de>
-		</text>
-		<text name="input_HARVEST_MISSION_CYCLE_FW">
-			<en>Harvest Mission: Cycle Forwards</en>
-			<de>Erntemission: Wechseln vorwärts</de>
-		</text>
-		<text name="input_HARVEST_MISSION_CYCLE_BW">
-			<en>Harvest Mission: Cycle Backwards</en>
-			<de>Erntemission: Wechseln rückwärts</de>
-		</text>
-	</l10n>
+    
+    <actions>
+        <action name="HARVEST_MISSION_TOGGLE_INFO"/>
+        <action name="HARVEST_MISSION_TEST"/>
+        <action name="HARVEST_MISSION_CYCLE_FW"/>
+        <action name="HARVEST_MISSION_CYCLE_BW"/>
+    </actions>
+    
+    <inputBinding>
+        <actionBinding action="HARVEST_MISSION_TOGGLE_INFO" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_rshift KEY_backslash" />
+        </actionBinding>
+        <actionBinding action="HARVEST_MISSION_TEST" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_lctrl KEY_lshift KEY_end" />
+        </actionBinding>
+        <actionBinding action="HARVEST_MISSION_CYCLE_FW" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_rightbracket" />
+        </actionBinding>
+        <actionBinding action="HARVEST_MISSION_CYCLE_BW" >
+            <binding device="KB_MOUSE_DEFAULT" input="KEY_leftbracket" />
+        </actionBinding>
+    </inputBinding>
+    
+    <l10n>
+        <text name="input_HARVEST_MISSION_TOGGLE_INFO">
+            <en>Harvest Mission: Toggle Info</en>
+            <de>Erntemission: Info umschalten</de>
+        </text>
+        <text name="input_HARVEST_MISSION_TEST">
+            <en>Harvest Mission: AUTO COMPLETE</en>
+            <de>Erntemission: AUTO KOMPLETT</de>
+        </text>
+        <text name="input_HARVEST_MISSION_CYCLE_FW">
+            <en>Harvest Mission: Cycle Forwards</en>
+            <de>Erntemission: Vorwärts wechseln</de>
+        </text>
+        <text name="input_HARVEST_MISSION_CYCLE_BW">
+            <en>Harvest Mission: Cycle Backwards</en>
+            <de>Erntemission: Zurück wechseln</de>
+        </text>
+    </l10n>
 
 </modDesc>
