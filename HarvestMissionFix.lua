@@ -26,23 +26,25 @@ end
 FSBaseMission.registerActionEvents = Utils.appendedFunction(FSBaseMission.registerActionEvents, function()
     local triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings = false, true, false, true, nil, true
 	
-    local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_TOGGLE_INFO", HarvestMissionFix, HarvestMissionFix.toggleInfo, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
-    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
-	HarvestMissionFix.toggleInfoActionEventId = actionEventId
+	if g_currentMission:getIsServer() and not g_currentMission.missionDynamicInfo.isMultiplayer then
+		local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_TOGGLE_INFO", HarvestMissionFix, HarvestMissionFix.toggleInfo, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
+		g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
+		HarvestMissionFix.toggleInfoActionEventId = actionEventId
+		
+		local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_CYCLE_FW", HarvestMissionFix, HarvestMissionFix.cycleFW, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
+		g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
+		g_inputBinding:setActionEventTextVisibility(actionEventId, false)
+		HarvestMissionFix.cycleFWActionEventId = actionEventId
+		
+		local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_CYCLE_BW", HarvestMissionFix, HarvestMissionFix.cycleBW, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
+		g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
+		g_inputBinding:setActionEventTextVisibility(actionEventId, false)
+		HarvestMissionFix.cycleBWActionEventId = actionEventId
 	
-	local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_CYCLE_FW", HarvestMissionFix, HarvestMissionFix.cycleFW, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
-    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
-	g_inputBinding:setActionEventTextVisibility(actionEventId, false)
-	HarvestMissionFix.cycleFWActionEventId = actionEventId
-	
-	local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_CYCLE_BW", HarvestMissionFix, HarvestMissionFix.cycleBW, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
-    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_NORMAL)
-	g_inputBinding:setActionEventTextVisibility(actionEventId, false)
-	HarvestMissionFix.cycleBWActionEventId = actionEventId
-	
-	local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_TEST", HarvestMissionFix, HarvestMissionFix.test, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
-    g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
-	HarvestMissionFix.testActionEventId = actionEventId
+		local state, actionEventId, otherEvents = g_inputBinding:registerActionEvent("HARVEST_MISSION_TEST", HarvestMissionFix, HarvestMissionFix.test, triggerUp, triggerDown, triggerAlways, startActive, callbackState, disableConflictingBindings)
+		g_inputBinding:setActionEventTextPriority(actionEventId, GS_PRIO_HIGH)
+		HarvestMissionFix.testActionEventId = actionEventId
+	end
 end)
 
 		

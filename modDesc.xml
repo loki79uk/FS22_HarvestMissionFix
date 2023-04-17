@@ -10,18 +10,20 @@
     </title>
 	
     <description>
-<en><![CDATA[This mod will fix an issue that prevents harvest missions from being completed on certain maps.  It will apply to all new contracts.
+<en><![CDATA[This mod will fix an issue that prevents harvest missions from being completed on certain maps.  It will apply to all new contracts in single player or multiplayer games.
 
-There is also an optional debugging display that will monitor progress and can help identify other issues with yield or harvest mission completion.
+For single player games there is an optional debugging display that will monitor progress and can help identify other issues with yield or harvest mission completion.  You can also test the completion of a mission by harvesting and delivering all crops from a field with a single key press!
 ]]>
 </en>
 
-<de><![CDATA[
+<de><![CDATA[Diese Mod behebt ein Problem, das den Abschluss von Ernteaufträgen auf bestimmten Karten verhindert.  Sie gilt für alle neuen Verträge in Einzelspieler- oder Mehrspieler-Spielen.
+
+Für Einzelspielerspiele gibt es eine optionale Debugging-Anzeige, die den Fortschritt überwacht und dabei helfen kann, andere Probleme mit dem Ertrag oder dem Abschluss von Erntemissionen zu identifizieren.  Sie können auch den Abschluss einer Mission testen, indem Sie mit einem einzigen Tastendruck alle Feldfrüchte ernten und abliefern!
 ]]>
 </de>
     </description>
 	
-	<multiplayer supported="true" />
+	<multiplayer supported="true"/>
 	<iconFilename>modIcon.dds</iconFilename>
 	<extraSourceFiles>
         <sourceFile filename="HarvestMissionFix.lua" />
